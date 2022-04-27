@@ -28,4 +28,3 @@ print_r(json_decode($response)->{'data'}[0]->{'quote'}->{'USD'}->{'volume_24h'})
 $myObject = json_decode($response);
 $data = $myObject->{'data'};
 curl_close($curl); // Close request
-?>
