@@ -13,49 +13,49 @@ class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-
-
-        $response = "hello";
-        print_r($this->CoinGeckoAPI());
+        $cryptos = $this->moyenne(30, $this->coinMarketCapAPI(), $this->coinGeckoAPI());
 
         return $this->render('home/index.html.twig', [
-            $response => 'HomeController',
+            'cryptos' => $cryptos,
         ]);
     }
 
     //TODO: Vérifier le delta en cas de bug des API
-    public function moyenne(int $limit, array $coinMarketArray, array $binanceArray) : array
+    public function moyenne(int $limit, array $coinMarketArray, array $coinGeckoArray) : array
     {
         $finalArray = [];
+        $id = 1;
         for ($i = 0; $i < $limit; $i++) {
             $array = [];
 
             for ($j = 0; $j < $limit; $j++) {
-                if ($coinMarketArray[$i][1] === $binanceArray[$j][1]) {
-                    $averagePrice = ($coinMarketArray[$i][3] + $binanceArray[$i][3]) / 2;
-                    $averageMarketCap = ($coinMarketArray[$i][4] + $binanceArray[$i][4]) / 2;
-                    $array[0] = $i;
-                    $array[1] = $coinMarketArray[$i]->{'name'};
-                    $array[2] = $coinMarketArray[$i]->{'symbol'};
-                    $array[3] = $averagePrice;
-                    $array[4] = $averageMarketCap;
+                if ($coinMarketArray[$i][1] === $coinGeckoArray[$j][1]) {
+                    $averagePrice = ($coinMarketArray[$i][3] + floatval($coinGeckoArray[$j][4])) / 2;
+                    $averageMarketCap = ($coinMarketArray[$i][4] + $coinGeckoArray[$j][5]) / 2;
+                    $array[0] = $id;
+                    $array[1] = $coinGeckoArray[$j][3];
+                    $array[2] = $coinGeckoArray[$j][1];
+                    $array[3] = $coinGeckoArray[$j][2];
+                    $array[4] = $averagePrice;
+                    $array[5] = $averageMarketCap;
+                    $id++;
                 }
             }
+            array_push($finalArray, $array);
         }
+        // CoinGecko[]:id, _name, symbol, image, _price, AroundMarket
+        // CoinMarket[]:id, name, symbol, price, market_cap
+        // FinalArray:id, name, symbol, image, price, market_cap
         return $finalArray;
     }
 
-    private function CoinGeckoAPI() : array{
+    private function coinGeckoAPI() : array{
         $url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=35&page=1&sparkline=false';
-
         $parameters = [];
 
         $headers = [
             'Accepts: application/json'
         ];
-
-
-
 
         $qs = http_build_query($parameters); // query string encode the parameters
         $request = "{$url}?{$qs}"; // create the request URL
@@ -69,7 +69,6 @@ class HomeController extends AbstractController
         ));
 
         $response = curl_exec($curl); // Send the request, save the response
-
 
         $myObject = json_decode($response);
 
@@ -85,15 +84,15 @@ class HomeController extends AbstractController
             $id = $i;
             $_name = $data->{'name'};
             $symbol = $data->{'symbol'};
-            $_price = round($result, 2);
-            $ArroundMarket = round($market_cap, 2);
+            $_price = round($result, 8);
+            $AroundMarket = round($market_cap, 8);
 
             $array[0] = $id;
             $array[1] = $_name;
             $array[2] = $symbol;
             $array[3] = $image;
             $array[4] = $_price;
-            $array[5] = $ArroundMarket;
+            $array[5] = $AroundMarket;
 
             array_push($finalArray, $array);
 
@@ -117,8 +116,6 @@ class HomeController extends AbstractController
         $qs = http_build_query($parameters); // query string encode the parameters
         $request = "{$url}?{$qs}"; // create the request URL
 
-        // print($request);
-
         $curl = curl_init(); // Get cURL resource
         // Set cURL options
         curl_setopt_array($curl, array(
@@ -129,9 +126,7 @@ class HomeController extends AbstractController
 
         $response = curl_exec($curl); // Send the request, save the response
 
-
         $myObject = json_decode($response);
-
 
         $finalArray = [];
         for ($i = 0; $i < $limit; $i++) {
@@ -140,8 +135,8 @@ class HomeController extends AbstractController
             $id = $i;
             $name = $data->{'name'};
             $symbol = $data->{'symbol'};
-            $price = round($data->{'quote'}->{'USD'}->{'price'}, 2);
-            $market_cap = round($data->{'quote'}->{'USD'}->{'market_cap'}, 2);
+            $price = round($data->{'quote'}->{'USD'}->{'price'}, 8);
+            $market_cap = round($data->{'quote'}->{'USD'}->{'market_cap'}, 8);
             $array[0] = $id;
             $array[1] = $name;
             $array[2] = $symbol;
@@ -150,7 +145,6 @@ class HomeController extends AbstractController
 
             array_push($finalArray, $array);
         }
-        print_r($finalArray);
         curl_close($curl); // Close request
         return $finalArray;
     }

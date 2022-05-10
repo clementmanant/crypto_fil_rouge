@@ -9,11 +9,44 @@
 </style>
 
 <div class="example-wrapper">
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ '/Users/clementmanant/Documents/B2/Yday Crypto/crypto_fil_rouge/src/Controller/HomeController.php'|file_link(0) }}">src/Controller/HomeController.php</a></code></li>
-        <li>Your template at <code><a href="{{ '/Users/clementmanant/Documents/B2/Yday Crypto/crypto_fil_rouge/templates/home/index.html.twig'|file_link(0) }}">templates/home/index.html.twig</a></code></li>
-    </ul>
+    <table id="datatablesSimple" class="dataTable-table">
+        <thead>
+        <tr>
+            <th data-sortable="" style="width: 5%;">
+                <a href="#" class="dataTable-sorter">Id</a>
+            </th>
+            <th data-sortable="" style="width: 1%;">
+                <a href="#" class="dataTable-sorter">Image</a>
+            </th>
+            <th data-sortable="" style="width: 15.765765765765765%;">
+                <a href="#" class="dataTable-sorter">Name</a>
+            </th>
+            <th data-sortable="" style="width: 9.00900900900901%;">
+                <a href="#" class="dataTable-sorter">Symbol</a>
+            </th>
+            <th data-sortable="" style="width: 14.714714714714713%;">
+                <a href="#" class="dataTable-sorter">Current Price in $</a>
+            </th>
+            <th data-sortable="" style="width: 12.462462462462462%;">
+                <a href="#" class="dataTable-sorter">Market Cap</a>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for crypto in cryptos %}
+                <tr>
+                    {% for data in crypto %}
+                        {% if data starts with 'http' %}
+                            <td>
+                                <img src="{{ data }}" alt="Logo" width="35px" height="35px" style="margin-left: 15px">
+                            </td>
+                        {% else %}
+                            <td>{{ data }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
